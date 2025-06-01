@@ -328,11 +328,19 @@
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--border-color);
+            position: relative;
         }
 
         .card-icon {
             font-size: 1.25rem;
             color: var(--accent-color);
+        }
+
+        .todo-count {
+            position: absolute;
+            right: 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
         /* Notes */
@@ -528,11 +536,6 @@
             border: 1px solid var(--border-color);
         }
 
-        .todo-count {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .app-grid {
@@ -560,6 +563,28 @@
 
             .toggle-group {
                 gap: 0.75rem;
+            }
+
+            /* About modal mobile adjustments */
+            #aboutModal > div {
+                margin: 1rem !important;
+                padding: 1rem !important;
+            }
+
+            #closeAbout {
+                top: 1rem !important;
+                right: 1rem !important;
+            }
+
+            #aboutContent {
+                padding: 1.5rem !important;
+            }
+
+            /* Logo about tooltip mobile */
+            .logo-about {
+                bottom: -40px;
+                font-size: 0.875rem;
+                padding: 0.75rem 1rem;
             }
         }
 
@@ -651,7 +676,7 @@
                 align-items: center;
                 justify-content: center;
                 background-color: var(--bg-card);
-            ">
+            " title="关闭">
                 <i class="fas fa-times"></i>
             </button>
             <div id="aboutContent" style="
@@ -1192,8 +1217,14 @@
 
         // About modal functions
         function showAbout() {
+            // Try to fetch README.md first (works when deployed)
             fetch('README.md')
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
                 .then(markdown => {
                     const html = convertMarkdownToHTML(markdown);
                     document.getElementById('aboutContent').innerHTML = html;
@@ -1202,8 +1233,11 @@
                     document.body.style.overflow = 'hidden';
                 })
                 .catch(error => {
-                    console.error('Error loading README:', error);
-                    document.getElementById('aboutContent').innerHTML = '<h1>Error</h1><p>Could not load README.md</p>';
+                    console.log('Fetch failed (expected for local file:// protocol), using embedded content');
+                    // Fallback: Use embedded README content for local file access
+                    const embeddedReadme = getEmbeddedReadme();
+                    const html = convertMarkdownToHTML(embeddedReadme);
+                    document.getElementById('aboutContent').innerHTML = html;
                     document.getElementById('aboutModal').style.opacity = '1';
                     document.getElementById('aboutModal').style.pointerEvents = 'auto';
                     document.body.style.overflow = 'hidden';
@@ -1214,6 +1248,241 @@
             document.getElementById('aboutModal').style.opacity = '0';
             document.getElementById('aboutModal').style.pointerEvents = 'none';
             document.body.style.overflow = 'auto';
+        }
+
+        // Embedded README content for local file access
+        function getEmbeddedReadme() {
+            return `# Lil Note - 代码如何变成网页的秘密
+
+> 一个活生生的例子：3个功能（番茄时钟、待办清单、小笔记），1个文件，800行代码，展示网页是如何从无到有诞生的。
+
+## 🎯 你将学到什么
+
+**这不是又一个项目说明书**。这是一扇窗，让你透过真实代码，看懂：
+- 那些尖括号\`<>\`到底在干什么
+- 为什么浏览器能把文字变成会动的按钮
+- 一个网页是如何在你的屏幕上"活"起来的
+- HTTP如何让你的电脑和服务器"对话"
+- CPU和GPU如何分工合作渲染网页
+
+---
+
+## 🧩 网页的三重身份
+
+想象你要搭建一座房子：
+
+### HTML - 骨架工程师
+\`\`\`html
+<div class="card">
+    <h2>番茄时钟</h2>
+    <button>开始</button>
+</div>
+\`\`\`
+**它说**："我要一个盒子，里面放个标题和按钮。"
+
+就像建房子先搭钢筋框架，HTML负责说"这里要个门，那里要个窗"。那些尖括号\`<>\`就是建筑图纸上的标记符号。
+
+### CSS - 室内设计师
+\`\`\`css
+.card {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+\`\`\`
+**它说**："把那个盒子刷成白色，圆圆的角，里面留点空隙。"
+
+CSS接过HTML的骨架，开始装修：刷墙、铺地、挂窗帘。让冷冰冰的框架变得赏心悦目。
+
+### JavaScript - 生活管家
+\`\`\`javascript
+button.addEventListener('click', startTimer);
+\`\`\`
+**它说**："当有人按这个按钮时，开始计时。"
+
+JavaScript让房子"活"起来：按下开关灯就亮，转动水龙头水就流。它是让一切产生互动的魔法师。
+
+---
+
+## 🔄 从代码到网页的魔法
+
+### 第一步：浏览器读懂你的"图纸"
+当你打开\`index.html\`，浏览器像建筑工人拿到图纸：
+
+1. **解析HTML**：看懂每个\`<>\`标签要建什么
+2. **解析CSS**：理解每个元素要长什么样  
+3. **执行JavaScript**：激活所有的交互行为
+
+### 第二步：构建"房子"结构
+浏览器在内存中搭建一个看不见的房子（DOM树）：
+\`\`\`
+网页
+├── 头部区域
+│   ├── 标题logo
+│   └── 主题切换按钮
+└── 主要区域
+    ├── 笔记卡片
+    ├── 番茄时钟卡片
+    └── 待办清单卡片
+\`\`\`
+
+### 第三步：给房子"装修"（渲染过程）
+这里CPU和GPU开始分工：
+
+**CPU（中央处理器）**负责：
+- 解析HTML、CSS、JavaScript
+- 计算每个元素的位置和大小
+- 处理用户点击、输入等交互
+
+**GPU（图形处理器）**负责：
+- 把计算好的元素画到屏幕上
+- 处理动画、阴影、渐变等视觉效果
+- 让页面滚动更流畅
+
+### 第四步：让房子"活"起来
+JavaScript开始工作：
+- 点击按钮→计时器开始跑
+- 输入文字→自动保存到本地
+- 切换主题→整个房子换装
+
+---
+
+## 🌐 网页如何飞到你的屏幕
+
+### 本地版本（就像在自己家盖房子）
+直接打开\`index.html\`文件：
+1. 浏览器读取你硬盘上的文件
+2. 按照上面的步骤构建网页
+3. 显示在屏幕上
+
+### 网络版本（就像去别人家做客）
+访问网站时发生的故事：
+
+1. **你的浏览器**："我想访问这个网站"（发送HTTP请求）
+2. **DNS服务器**："那个网站住在这个IP地址"（域名解析）
+3. **远程服务器**："给你HTML文件"（HTTP响应）
+4. **你的浏览器**："我来把这个文件变成网页"（渲染）
+
+**HTTP就像邮差**：
+- 你写信（发请求）→ 邮差送信（HTTP传输）→ 收到回信（获得网页）
+- 每次点击链接、提交表单，都是在"写信"
+- 服务器就是那个会回信的朋友
+
+---
+
+## ⚡ 神奇的本地存储
+
+\`\`\`javascript
+localStorage.setItem('notes', '我的笔记内容');
+\`\`\`
+
+这行代码做了什么？就像在你的浏览器里放了个小抽屉，专门存放这个网站的东西。下次你再来，东西还在那里。
+
+**为什么神奇？**
+- 不需要注册账号
+- 不需要网络连接
+- 浏览器替你保管一切
+
+**底层原理**：
+- 数据存在你的硬盘上（通常在浏览器的配置文件夹里）
+- 每个网站有自己独立的存储空间
+- 就像每个App有自己的文件夹一样
+
+---
+
+## 🎨 主题切换的秘密
+
+看这段魔法：
+\`\`\`css
+:root {
+    --bg-color: #ffffff;  /* 定义变量：背景色 */
+}
+
+[data-theme="dark"] {
+    --bg-color: #111827;  /* 黑暗模式：换个颜色 */
+}
+\`\`\`
+
+就像有个全屋智能开关，一按就能把所有灯从暖光换成冷光。CSS变量让整个网页瞬间换装。
+
+**技术细节**：
+- CSS变量存在内存中
+- JavaScript修改HTML属性
+- CSS立即重新计算样式
+- GPU重新渲染页面
+- 整个过程不到100毫秒
+
+---
+
+## 💾 性能的秘密
+
+### 为什么这个网页这么快？
+
+**1. 单文件设计**
+- 不需要额外下载CSS、JS文件
+- 减少HTTP请求次数
+- 就像把所有东西装在一个箱子里，一次搬完
+
+**2. 本地优先**
+- 数据存在你的电脑上
+- 不依赖网络连接
+- CPU直接从内存读取，比网络快1000倍
+
+**3. 现代浏览器优化**
+- V8引擎（Chrome的JavaScript引擎）超级快
+- GPU加速让动画丝滑
+- 智能缓存减少重复计算
+
+---
+
+## 🚀 开始你的探索
+
+1. **打开\`index.html\`**：看看房子长什么样
+2. **按F12**：打开浏览器的"工程师工具箱"
+3. **点击Elements标签**：看看HTML的骨架
+4. **点击Network标签**：观察HTTP请求（如果有的话）
+5. **点击Performance标签**：看看CPU和GPU在做什么
+6. **修改点什么**：比如把按钮颜色改成粉色
+
+**进阶探索**：
+- 打开\`localStorage\`看看数据存在哪里
+- 修改CSS变量观察主题切换
+- 在控制台运行JavaScript代码
+
+---
+
+## 💡 三个关键顿悟
+
+### 1. 网页不是图片，网页是活的程序
+当你看到按钮、文字、动画，那不是预先画好的图片，而是浏览器根据代码**实时计算**出来的结果。
+
+### 2. 你的电脑比你想象的更强大
+现代浏览器就是一个操作系统，它有：
+- JavaScript引擎（比很多编程语言都快）
+- 渲染引擎（专业级图形处理）
+- 网络栈（处理HTTP通信）
+- 存储系统（管理本地数据）
+
+### 3. 编程就是给机器写说明书
+每一行代码都是在告诉CPU/GPU："请这样做"。机器不会猜你的意思，但会完美执行你的指令。
+
+---
+
+## 🔮 下一步去哪里？
+
+**如果你想深入了解**：
+- HTTP：学习网络请求是如何工作的
+- DOM操作：如何用JavaScript控制网页元素
+- 性能优化：让网页跑得更快的技巧
+- 现代框架：React、Vue等工具如何简化开发
+
+**记住**：最好的学习方式就是动手试试。代码不会咬人，最多就是页面显示得奇怪一点。
+
+---
+
+*现在，去打开那个文件，开始你的第一次代码对话吧。* 
+
+*每一次点击、每一次输入，都是在与这个智能程序对话。*`;
         }
 
         // Simple markdown to HTML converter
