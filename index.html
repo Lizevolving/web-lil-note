@@ -1221,11 +1221,7 @@
                 // Escape HTML tags in code blocks first to prevent rendering
                 .replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
                     const language = lang ? ` class="language-${lang}"` : '';
-                    const escapedCode = code.trim()
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/&/g, '&amp;');
-                    return `<pre><code${language}>${escapedCode}</code></pre>`;
+                    return `<pre><code${language}>${code.trim()}</code></pre>`;
                 })
                 // Escape inline code
                 .replace(/`([^`]+)`/g, function(match, code) {
