@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lil Note - 极简小笔记</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Light theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-card: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;  
+            --border-color: #4b5563;
+            --accent-color: #60a5fa;
+            --accent-hover: #3b82f6;
+            --success-color: #34d399;
+            --warning-color: #fbbf24;
+            --danger-color: #f87171;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+        }
+
+        .logo {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            opacity: 0.8;
+        }
+
+        .logo i {
+            font-size: 0.875rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn {
+            background: none;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            min-height: 2rem;
+        }
+
+        .btn:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Main Content */
+        main {
+            padding: 1rem 0;
+            min-height: calc(100vh - 100px);
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 140px);
+            margin-top: 1rem;
+        }
+
+        /* Notes section takes full width on top */
+        .notes-section {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        /* Bottom section with two columns */
+        .bottom-section {
+            grid-column: 1;
+            grid-row: 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Notes */
+        .notes-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-area {
+            width: 100%;
+            flex: 1;
+            min-height: 200px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .notes-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            gap: 1rem;
+        }
+
+        .notes-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .notes-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Pomodoro Timer */
+        .timer-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .timer-display {
+            text-align: center;
+            margin: 1rem 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .timer-time {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .timer-controls .btn {
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+            transition: width 1s ease;
+        }
+
+        .timer-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: auto;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .setting-group label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .setting-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        /* Todo List */
+        .todo-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .todo-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .todo-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .todo-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .todo-item input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: var(--success-color);
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-grid {
+                grid-template-rows: 1fr auto auto;
+                height: auto;
+                min-height: calc(100vh - 140px);
+            }
+
+            .bottom-section {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+            }
+
+            .timer-time {
+                font-size: 2rem;
+            }
+
+            .notes-area {
+                min-height: 150px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-sticky-note"></i>
+                    <span data-text="title">Lil Note</span>
+                </div>
+                <div class="controls">
+                    <button class="btn" id="themeToggle" title="切换主题">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn" id="langToggle" title="切换语言">
+                        <i class="fas fa-language"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="app-grid">
+                <!-- Notes Section - Top Half -->
+                <div class="notes-section">
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-note-sticky"></i>
+                                <span data-text="notes">小笔记</span>
+                            </h2>
+                        </div>
+
+                        <div class="notes-content">
+                            <textarea class="notes-area" id="notesArea" data-placeholder="writeNotes" placeholder="在这里写下你的想法..."></textarea>
+                            
+                            <div class="notes-controls">
+                                <div class="notes-buttons">
+                                    <button class="btn btn-sm" id="copyBtn" title="复制内容">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn btn-sm" id="pasteBtn" title="粘贴内容">
+                                        <i class="fas fa-paste"></i>
+                                    </button>
+                                </div>
+                                <div class="notes-info">
+                                    <span id="charCount">0 <span data-text="characters">个字符</span></span>
+                                    <span id="lastSaved" data-text="autoSave">自动保存</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Section - Timer and Todo -->
+                <div class="bottom-section">
+                    <!-- Pomodoro Timer -->
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-clock"></i>
+                                <span data-text="pomodoro">番茄时钟</span>
+                            </h2>
+                        </div>
+                        
+                        <div class="timer-content">
+                            <div class="timer-display">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="timerProgress"></div>
+                                </div>
+                                <div class="timer-time" id="timerDisplay">25:00</div>
+                            </div>
+
+                            <div class="timer-controls">
+                                <button class="btn" id="startBtn" title="开始">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="btn" id="pauseBtn" title="暂停">
+                                    <i class="fas fa-pause"></i>
+                                </button>
+                                <button class="btn" id="resetBtn" title="重置">
+                                    <i class="fas fa-refresh"></i>
+                                </button>
+                            </div>
+
+                            <div class="timer-settings">
+                                <div class="setting-group">
+                                    <label data-text="focusTime" for="focusTime">专注时长(分钟)</label>
+                                    <input type="number" id="focusTime" value="25" min="1" max="60">
+                                </div>
+                                <div class="setting-group">
+                                    <label data-text="breakTime" for="breakTime">休息时长(分钟)</label>
+                                    <input type="number" id="breakTime" value="5" min="1" max="30">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Todo List -->
+                    <div class="card fade-in">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-list-check"></i>
+                                <span data-text="todoList">待办清单</span>
+                            </h2>
+                            <span id="todoCount" class="text-secondary">0</span>
+                        </div>
+
+                        <div class="todo-content">
+                            <div class="todo-input">
+                                <input type="text" id="todoInput" data-placeholder="addTask" placeholder="添加新任务...">
+                                <button class="btn btn-primary" id="addTodoBtn" title="添加任务">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <div class="todo-list" id="todoList">
+                                <!-- Todo items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Language configuration
+        const translations = {
+            zh: {
+                title: 'Lil Note',
+                theme: '主题',
+                language: 'EN',
+                pomodoro: '番茄时钟',
+                todoList: '待办清单',
+                notes: '小笔记',
+                focus: '专注时间',
+                break: '休息时间',
+                start: '开始',
+                pause: '暂停',
+                reset: '重置',
+                focusTime: '专注时长(分钟)',
+                breakTime: '休息时长(分钟)',
+                addTask: '添加新任务...',
+                characters: '个字符',
+                autoSave: '自动保存',
+                writeNotes: '在这里写下你的想法...'
+            },
+            en: {
+                title: 'Lil Note',
+                theme: 'Theme',
+                language: '中文',
+                pomodoro: 'Pomodoro',
+                todoList: 'Todo List',
+                notes: 'Notes',
+                focus: 'Focus Time',
+                break: 'Break Time',
+                start: 'Start',
+                pause: 'Pause',
+                reset: 'Reset',
+                focusTime: 'Focus Time (minutes)',
+                breakTime: 'Break Time (minutes)',
+                addTask: 'Add new task...',
+                characters: 'characters',
+                autoSave: 'Auto saved',
+                writeNotes: 'Write your thoughts here...'
+            }
+        };
+
+        // App state
+        let currentLang = localStorage.getItem('language') || 'zh';
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        let timerState = {
+            isRunning: false,
+            isPaused: false,
+            timeLeft: 25 * 60, // 25 minutes in seconds
+            totalTime: 25 * 60,
+            isBreak: false
+        };
+        let timerInterval = null;
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            applyTheme(currentTheme);
+            applyLanguage(currentLang);
+            loadTodos();
+            loadNotes();
+            updateTimerDisplay();
+            
+            // Event listeners
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Language toggle
+            document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+            
+            // Timer controls
+            document.getElementById('startBtn').addEventListener('click', startTimer);
+            document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
+            document.getElementById('resetBtn').addEventListener('click', resetTimer);
+            
+            // Timer settings
+            document.getElementById('focusTime').addEventListener('change', updateTimerSettings);
+            document.getElementById('breakTime').addEventListener('change', updateTimerSettings);
+            
+            // Todo functionality
+            document.getElementById('addTodoBtn').addEventListener('click', addTodo);
+            document.getElementById('todoInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addTodo();
+            });
+            
+            // Notes functionality
+            const notesArea = document.getElementById('notesArea');
+            notesArea.addEventListener('input', saveNotes);
+            notesArea.addEventListener('input', updateCharCount);
+            
+            // Copy and paste functionality
+            document.getElementById('copyBtn').addEventListener('click', copyNotes);
+            document.getElementById('pasteBtn').addEventListener('click', pasteNotes);
+        }
+
+        // Theme functions
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(currentTheme);
+            localStorage.setItem('theme', currentTheme);
+        }
+
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        // Language functions
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            applyLanguage(currentLang);
+            localStorage.setItem('language', currentLang);
+        }
+
+        function applyLanguage(lang) {
+            const elements = document.querySelectorAll('[data-text]');
+            const placeholderElements = document.querySelectorAll('[data-placeholder]');
+            
+            elements.forEach(element => {
+                const key = element.getAttribute('data-text');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            placeholderElements.forEach(element => {
+                const key = element.getAttribute('data-placeholder');
+                if (translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        }
+
+        // Timer functions
+        function startTimer() {
+            if (!timerState.isRunning) {
+                timerState.isRunning = true;
+                timerState.isPaused = false;
+                
+                timerInterval = setInterval(() => {
+                    timerState.timeLeft--;
+                    updateTimerDisplay();
+                    updateProgress();
+                    
+                    if (timerState.timeLeft <= 0) {
+                        completeTimer();
+                    }
+                }, 1000);
+                
+                document.getElementById('timerDisplay').classList.add('pulse');
+            }
+        }
+
+        function pauseTimer() {
+            if (timerState.isRunning) {
+                timerState.isRunning = false;
+                timerState.isPaused = true;
+                clearInterval(timerInterval);
+                document.getElementById('timerDisplay').classList.remove('pulse');
+            }
+        }
+
+        function resetTimer() {
+            timerState.isRunning = false;
+            timerState.isPaused = false;
+            clearInterval(timerInterval);
+            
+            const focusTime = parseInt(document.getElementById('focusTime').value) || 25;
+            const breakTime = parseInt(document.getElementById('breakTime').value) || 5;
+            
+            if (timerState.isBreak) {
+                timerState.timeLeft = breakTime * 60;
+                timerState.totalTime = breakTime * 60;
+            } else {
+                timerState.timeLeft = focusTime * 60;
+                timerState.totalTime = focusTime * 60;
+            }
+            
+            updateTimerDisplay();
+            updateProgress();
+            document.getElementById('timerDisplay').classList.remove('pulse');
+        }
+
+        function completeTimer() {
+            clearInterval(timerInterval);
+            timerState.isRunning = false;
+            timerState.isBreak = !timerState.isBreak;
+            
+            // Play notification sound (you can add an audio file here)
+            playNotification();
+            
+            // Switch between focus and break
+            resetTimer();
+            
+            // Auto-start break (optional)
+            if (timerState.isBreak) {
+                setTimeout(startTimer, 1000);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerState.timeLeft / 60);
+            const seconds = timerState.timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress() {
+            const progress = ((timerState.totalTime - timerState.timeLeft) / timerState.totalTime) * 100;
+            document.getElementById('timerProgress').style.width = `${progress}%`;
+        }
+
+        function updateTimerSettings() {
+            if (!timerState.isRunning && !timerState.isPaused) {
+                resetTimer();
+            }
+        }
+
+        function playNotification() {
+            // Simple notification using browser API
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const title = timerState.isBreak ? 'Focus Complete!' : 'Break Complete!';
+                const body = timerState.isBreak ? 'Time for a break!' : 'Back to work!';
+                new Notification(title, { body });
+            } else if ('Notification' in window && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+        }
+
+        // Todo functions
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                const todo = {
+                    id: Date.now(),
+                    text: text,
+                    completed: false,
+                    createdAt: new Date()
+                };
+                
+                todos.push(todo);
+                saveTodos();
+                renderTodos();
+                input.value = '';
+            }
+        }
+
+        function toggleTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(t => t.id !== id);
+            saveTodos();
+            renderTodos();
+        }
+
+        function editTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                const newText = prompt('Edit task:', todo.text);
+                if (newText && newText.trim()) {
+                    todo.text = newText.trim();
+                    saveTodos();
+                    renderTodos();
+                }
+            }
+        }
+
+        function renderTodos() {
+            const todoList = document.getElementById('todoList');
+            const todoCount = document.getElementById('todoCount');
+            
+            todoList.innerHTML = '';
+            
+            todos.forEach(todo => {
+                const todoItem = document.createElement('div');
+                todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                
+                todoItem.innerHTML = `
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                           onchange="toggleTodo(${todo.id})">
+                    <span class="todo-text">${todo.text}</span>
+                    <div class="todo-actions">
+                        <button class="btn btn-sm" onclick="editTodo(${todo.id})" title="编辑">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="deleteTodo(${todo.id})" title="删除">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                todoList.appendChild(todoItem);
+            });
+            
+            const activeTodos = todos.filter(t => !t.completed).length;
+            todoCount.textContent = activeTodos;
+        }
+
+        function loadTodos() {
+            renderTodos();
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        // Notes functions
+        function saveNotes() {
+            const notes = document.getElementById('notesArea').value;
+            localStorage.setItem('notes', notes);
+            
+            const lastSaved = document.getElementById('lastSaved');
+            lastSaved.textContent = translations[currentLang].autoSave;
+            
+            setTimeout(() => {
+                lastSaved.textContent = '';
+            }, 2000);
+        }
+
+        function loadNotes() {
+            const notes = localStorage.getItem('notes') || '';
+            document.getElementById('notesArea').value = notes;
+            updateCharCount();
+        }
+
+        function updateCharCount() {
+            const text = document.getElementById('notesArea').value;
+            const count = text.length;
+            document.getElementById('charCount').innerHTML = 
+                `${count} <span data-text="characters">${translations[currentLang].characters}</span>`;
+        }
+
+        // Copy and Paste functions
+        async function copyNotes() {
+            const notesArea = document.getElementById('notesArea');
+            const text = notesArea.value;
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                showMessage('已复制到剪贴板');
+            } catch (err) {
+                // Fallback for older browsers
+                notesArea.select();
+                document.execCommand('copy');
+                showMessage('已复制到剪贴板');
+            }
+        }
+
+        async function pasteNotes() {
+            const notesArea = document.getElementById('notesArea');
+            
+            try {
+                const text = await navigator.clipboard.readText();
+                notesArea.value = text;
+                saveNotes();
+                updateCharCount();
+                showMessage('已从剪贴板粘贴');
+            } catch (err) {
+                showMessage('无法访问剪贴板，请手动粘贴');
+            }
+        }
+
+        function showMessage(message) {
+            const lastSaved = document.getElementById('lastSaved');
+            lastSaved.textContent = message;
+            
+            setTimeout(() => {
+                lastSaved.textContent = '';
+            }, 2000);
+        }
+
+        // Request notification permission on load
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html> 
