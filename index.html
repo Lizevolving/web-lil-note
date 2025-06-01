@@ -100,8 +100,91 @@
 
         .controls {
             display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
             align-items: center;
+        }
+
+        /* Toggle Switches */
+        .toggle-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 3rem;
+            height: 1.5rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch:hover {
+            background-color: var(--border-color);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: var(--bg-card);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        .toggle-slider i {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(1.5rem);
+        }
+
+        /* Theme specific icons */
+        [data-theme="light"] .theme-toggle .toggle-slider i {
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .theme-toggle .toggle-slider i {
+            color: #60a5fa;
+        }
+
+        /* Divider */
+        .divider {
+            width: 1px;
+            height: 1.5rem;
+            background-color: var(--border-color);
+        }
+
+        /* GitHub Link */
+        .github-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .github-link:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .github-link i {
+            font-size: 1.125rem;
         }
 
         .btn {
@@ -144,19 +227,19 @@
         .app-grid {
             display: grid;
             grid-template-columns: 1fr;
-            grid-template-rows: 1fr 1fr;
+            grid-template-rows: 3fr 2fr;
             gap: 1.5rem;
             height: calc(100vh - 140px);
             margin-top: 1rem;
         }
 
-        /* Notes section takes full width on top */
+        /* Notes section takes 60% */
         .notes-section {
             grid-column: 1;
             grid-row: 1;
         }
 
-        /* Bottom section with two columns */
+        /* Bottom section takes 40% */
         .bottom-section {
             grid-column: 1;
             grid-row: 2;
@@ -184,18 +267,15 @@
         .card-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .card-title {
+        .card-icon {
             font-size: 1.25rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            color: var(--accent-color);
         }
 
         /* Notes */
@@ -208,8 +288,8 @@
         .notes-area {
             width: 100%;
             flex: 1;
-            min-height: 200px;
-            padding: 1rem;
+            min-height: 300px;
+            padding: 1.25rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background-color: var(--bg-secondary);
@@ -224,7 +304,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             gap: 1rem;
         }
 
@@ -391,10 +471,15 @@
             border: 1px solid var(--border-color);
         }
 
+        .todo-count {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .app-grid {
-                grid-template-rows: 1fr auto auto;
+                grid-template-rows: 2fr auto auto;
                 height: auto;
                 min-height: calc(100vh - 140px);
             }
@@ -409,7 +494,15 @@
             }
 
             .notes-area {
-                min-height: 150px;
+                min-height: 200px;
+            }
+
+            .controls {
+                gap: 0.75rem;
+            }
+
+            .toggle-group {
+                gap: 0.75rem;
             }
         }
 
@@ -442,12 +535,22 @@
                     <span data-text="title">Lil Note</span>
                 </div>
                 <div class="controls">
-                    <button class="btn" id="themeToggle" title="切换主题">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="btn" id="langToggle" title="切换语言">
-                        <i class="fas fa-language"></i>
-                    </button>
+                    <div class="toggle-group">
+                        <div class="toggle-switch theme-toggle" id="themeToggle" title="切换主题">
+                            <div class="toggle-slider">
+                                <i class="fas fa-sun"></i>
+                            </div>
+                        </div>
+                        <div class="toggle-switch lang-toggle" id="langToggle" title="切换语言">
+                            <div class="toggle-slider">
+                                <i class="fas fa-language"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <a href="https://github.com/Lizevolving/web-lil-note" target="_blank" rel="noopener" class="github-link" title="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
                 </div>
             </div>
         </div>
@@ -456,14 +559,11 @@
     <main>
         <div class="container">
             <div class="app-grid">
-                <!-- Notes Section - Top Half -->
+                <!-- Notes Section - Top 60% -->
                 <div class="notes-section">
                     <div class="card fade-in">
                         <div class="card-header">
-                            <h2 class="card-title">
-                                <i class="fas fa-note-sticky"></i>
-                                <span data-text="notes">小笔记</span>
-                            </h2>
+                            <i class="fas fa-note-sticky card-icon"></i>
                         </div>
 
                         <div class="notes-content">
@@ -487,15 +587,12 @@
                     </div>
                 </div>
 
-                <!-- Bottom Section - Timer and Todo -->
+                <!-- Bottom Section - Timer and Todo (40%) -->
                 <div class="bottom-section">
                     <!-- Pomodoro Timer -->
                     <div class="card fade-in">
                         <div class="card-header">
-                            <h2 class="card-title">
-                                <i class="fas fa-clock"></i>
-                                <span data-text="pomodoro">番茄时钟</span>
-                            </h2>
+                            <i class="fas fa-clock card-icon"></i>
                         </div>
                         
                         <div class="timer-content">
@@ -534,11 +631,8 @@
                     <!-- Todo List -->
                     <div class="card fade-in">
                         <div class="card-header">
-                            <h2 class="card-title">
-                                <i class="fas fa-list-check"></i>
-                                <span data-text="todoList">待办清单</span>
-                            </h2>
-                            <span id="todoCount" class="text-secondary">0</span>
+                            <i class="fas fa-list-check card-icon"></i>
+                            <span id="todoCount" class="todo-count">0</span>
                         </div>
 
                         <div class="todo-content">
@@ -672,8 +766,16 @@
 
         function applyTheme(theme) {
             document.body.setAttribute('data-theme', theme);
-            const icon = document.querySelector('#themeToggle i');
-            icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            const themeToggle = document.getElementById('themeToggle');
+            const icon = themeToggle.querySelector('i');
+            
+            if (theme === 'dark') {
+                themeToggle.classList.add('active');
+                icon.className = 'fas fa-moon';
+            } else {
+                themeToggle.classList.remove('active');
+                icon.className = 'fas fa-sun';
+            }
         }
 
         // Language functions
@@ -681,6 +783,13 @@
             currentLang = currentLang === 'zh' ? 'en' : 'zh';
             applyLanguage(currentLang);
             localStorage.setItem('language', currentLang);
+            
+            const langToggle = document.getElementById('langToggle');
+            if (currentLang === 'en') {
+                langToggle.classList.add('active');
+            } else {
+                langToggle.classList.remove('active');
+            }
         }
 
         function applyLanguage(lang) {
@@ -702,6 +811,14 @@
             });
             
             document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            
+            // Update language toggle state
+            const langToggle = document.getElementById('langToggle');
+            if (lang === 'en') {
+                langToggle.classList.add('active');
+            } else {
+                langToggle.classList.remove('active');
+            }
         }
 
         // Timer functions
