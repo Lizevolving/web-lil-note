@@ -1218,69 +1218,63 @@
         // Enhanced markdown to HTML converter
         function convertMarkdownToHTML(markdown) {
             let html = markdown
-                // Headers
+                // Escape HTML tags in code blocks first to prevent rendering
+                .replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
+                    const language = lang ? ` class="language-${lang}"` : '';
+                    const escapedCode = code.trim()
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/&/g, '&amp;');
+                    return `<pre><code${language}>${escapedCode}</code></pre>`;
+                })
+                // Escape inline code
+                .replace(/`([^`]+)`/g, function(match, code) {
+                    return `<code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+                })
+                // Headers (order matters - longer patterns first)
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
                 .replace(/^## (.*$)/gim, '<h2>$1</h2>')
                 .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                
                 // Horizontal rules
-                .replace(/^---$/gim, '<hr>')
-                .replace(/^-{3,}$/gim, '<hr>')
-                
-                // Code blocks with language support
-                .replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
-                    const language = lang ? ` class="language-${lang}"` : '';
-                    return `<pre><code${language}>${code.trim()}</code></pre>`;
-                })
-                
-                // Inline code
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                
+                .replace(/^---+$/gim, '<hr>')
                 // Bold and italic
                 .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                
                 // Blockquotes
                 .replace(/^> (.+$)/gim, '<blockquote>$1</blockquote>')
-                
                 // Links
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-                
+                // Lists - improved pattern matching
+                .replace(/^[-*] (.+$)/gim, '<li>$1</li>')
+                .replace(/^\d+\. (.+$)/gim, '<li>$1</li>')
                 // Line breaks
                 .replace(/\n/g, '<br>');
 
-            // Handle lists more carefully
-            html = html.replace(/^- (.+$)/gim, '<li>$1</li>');
-            html = html.replace(/^(\d+)\. (.+$)/gim, '<li>$2</li>');
-            
-            // Wrap consecutive list items in ul/ol tags
-            html = html.replace(/(<li>.*?<\/li>)(<br>)*(?=<li>|$)/gs, function(match, listItems) {
-                return listItems.replace(/<br>/g, '');
+            // Group consecutive list items into ul tags
+            html = html.replace(/(<li>.*?<\/li>(<br>)*)+/gs, function(match) {
+                const cleanMatch = match.replace(/<br>/g, '');
+                return `<ul>${cleanMatch}</ul>`;
             });
             
-            // Group list items
-            html = html.replace(/(<li>.*?<\/li>)+/gs, function(match) {
-                const items = match.replace(/<br>/g, '');
-                return `<ul>${items}</ul>`;
-            });
-            
-            // Clean up extra breaks around block elements
-            html = html.replace(/<br>(<\/?(h[1-6]|hr|pre|blockquote|ul|ol))/g, '$1');
-            html = html.replace(/(<\/?(h[1-6]|hr|pre|blockquote|ul|ol)[^>]*>)<br>/g, '$1');
+            // Clean up breaks around block elements
+            html = html.replace(/<br>(<\/?(h[1-6]|hr|pre|blockquote|ul)[^>]*>)/g, '$1')
+                      .replace(/(<\/?(h[1-6]|hr|pre|blockquote|ul)[^>]*>)<br>/g, '$1');
             
             return html;
         }
 
-        // Add CSS styles for better content display
-        function addAboutModalStyles() {
+        // Optimized styles injection
+        function injectAboutStyles() {
+            if (document.querySelector('[data-about-styles]')) return;
+            
             const style = document.createElement('style');
+            style.setAttribute('data-about-styles', 'true');
             style.textContent = `
                 #aboutContent {
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    font-family: inherit;
                     line-height: 1.7;
                     color: var(--text-primary);
                 }
-                
                 #aboutContent h1 {
                     font-size: 2rem;
                     font-weight: 700;
@@ -1289,29 +1283,18 @@
                     border-bottom: 2px solid var(--border-color);
                     padding-bottom: 0.5rem;
                 }
-                
                 #aboutContent h2 {
                     font-size: 1.5rem;
                     font-weight: 600;
                     margin: 2rem 0 1rem 0;
                     color: var(--text-primary);
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
                 }
-                
                 #aboutContent h3 {
                     font-size: 1.25rem;
                     font-weight: 500;
                     margin: 1.5rem 0 0.75rem 0;
                     color: var(--text-primary);
                 }
-                
-                #aboutContent p {
-                    margin: 0.75rem 0;
-                    color: var(--text-primary);
-                }
-                
                 #aboutContent blockquote {
                     margin: 1rem 0;
                     padding: 1rem 1.5rem;
@@ -1321,17 +1304,15 @@
                     font-style: italic;
                     color: var(--text-secondary);
                 }
-                
                 #aboutContent code {
                     background-color: var(--bg-secondary);
                     color: var(--accent-color);
                     padding: 0.2rem 0.4rem;
                     border-radius: 4px;
-                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    font-family: 'Monaco', 'Menlo', monospace;
                     font-size: 0.875rem;
                     font-weight: 500;
                 }
-                
                 #aboutContent pre {
                     background-color: var(--bg-secondary);
                     border: 1px solid var(--border-color);
@@ -1339,9 +1320,7 @@
                     padding: 1.5rem;
                     margin: 1rem 0;
                     overflow-x: auto;
-                    position: relative;
                 }
-                
                 #aboutContent pre code {
                     background: none;
                     color: var(--text-primary);
@@ -1352,22 +1331,18 @@
                     display: block;
                     white-space: pre;
                 }
-                
                 #aboutContent pre code.language-html { color: #e34c26; }
                 #aboutContent pre code.language-css { color: #1572b6; }
-                #aboutContent pre code.language-javascript { color: #f7df1e; }
+                #aboutContent pre code.language-javascript,
                 #aboutContent pre code.language-js { color: #f7df1e; }
-                
                 #aboutContent ul {
                     margin: 0.75rem 0;
                     padding-left: 1.5rem;
                 }
-                
                 #aboutContent li {
                     margin: 0.5rem 0;
                     color: var(--text-primary);
                 }
-                
                 #aboutContent hr {
                     border: none;
                     height: 2px;
@@ -1375,78 +1350,56 @@
                     margin: 2rem 0;
                     border-radius: 1px;
                 }
-                
                 #aboutContent a {
                     color: var(--accent-color);
                     text-decoration: none;
                     border-bottom: 1px solid transparent;
-                    transition: all 0.3s ease;
+                    transition: border-bottom-color 0.3s ease;
                 }
-                
                 #aboutContent a:hover {
                     border-bottom-color: var(--accent-color);
                 }
-                
                 #aboutContent strong {
                     font-weight: 600;
                     color: var(--text-primary);
                 }
-                
                 #aboutContent em {
                     font-style: italic;
                     color: var(--text-secondary);
                 }
-                
-                /* Responsive adjustments */
                 @media (max-width: 768px) {
                     #aboutContent h1 { font-size: 1.75rem; }
                     #aboutContent h2 { font-size: 1.25rem; }
                     #aboutContent h3 { font-size: 1.125rem; }
-                    #aboutContent pre { padding: 1rem; font-size: 0.8rem; }
+                    #aboutContent pre { padding: 1rem; }
                     #aboutContent blockquote { padding: 0.75rem 1rem; }
                 }
             `;
             document.head.appendChild(style);
         }
 
-        // About modal functions
+        // Simplified About modal functions
         function showAbout() {
-            // Add styles if not already added
-            if (!document.querySelector('style[data-about-styles]')) {
-                addAboutModalStyles();
-                document.querySelector('style:last-of-type').setAttribute('data-about-styles', 'true');
-            }
+            injectAboutStyles();
             
-            // Try to fetch README.md first (works when deployed)
             fetch('README.md')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(markdown => {
-                    const html = convertMarkdownToHTML(markdown);
-                    document.getElementById('aboutContent').innerHTML = html;
-                    document.getElementById('aboutModal').style.opacity = '1';
-                    document.getElementById('aboutModal').style.pointerEvents = 'auto';
-                    document.body.style.overflow = 'hidden';
-                })
-                .catch(error => {
-                    console.log('Fetch failed (expected for local file:// protocol), using embedded content');
-                    // Fallback: Use embedded README content for local file access
-                    const embeddedReadme = getEmbeddedReadme();
-                    const html = convertMarkdownToHTML(embeddedReadme);
-                    document.getElementById('aboutContent').innerHTML = html;
-                    document.getElementById('aboutModal').style.opacity = '1';
-                    document.getElementById('aboutModal').style.pointerEvents = 'auto';
-                    document.body.style.overflow = 'hidden';
-                });
+                .then(response => response.ok ? response.text() : Promise.reject())
+                .then(markdown => displayAboutContent(convertMarkdownToHTML(markdown)))
+                .catch(() => displayAboutContent(convertMarkdownToHTML(getEmbeddedReadme())));
+        }
+
+        function displayAboutContent(html) {
+            document.getElementById('aboutContent').innerHTML = html;
+            const modal = document.getElementById('aboutModal');
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            document.body.style.overflow = 'hidden';
         }
 
         function hideAbout() {
-            document.getElementById('aboutModal').style.opacity = '0';
-            document.getElementById('aboutModal').style.pointerEvents = 'none';
+            const modal = document.getElementById('aboutModal');
+            modal.style.opacity = '0';
+            modal.style.pointerEvents = 'none';
             document.body.style.overflow = 'auto';
         }
 
@@ -1558,10 +1511,10 @@ JavaScript开始工作：
 ### 网络版本（就像去别人家做客）
 访问网站时发生的故事：
 
-1. **你的浏览器**："我想访问这个网站"（发送HTTP请求）
-2. **DNS服务器**："那个网站住在这个IP地址"（域名解析）
-3. **远程服务器**："给你HTML文件"（HTTP响应）
-4. **你的浏览器**："我来把这个文件变成网页"（渲染）
+1. **你的浏览器**："我想访问这个网站"（输入网址：发送HTTP请求）
+2. **DNS服务器**："那个网站住在这个IP地址"（查地址本：域名解析）
+3. **远程服务器**："给你HTML文件"（主人开门迎客：HTTP响应）
+4. **你的浏览器**："我来把这个文件变成网页"（开始搭房子：渲染）
 
 **HTTP就像邮差**：
 - 你写信（发请求）→ 邮差送信（HTTP传输）→ 收到回信（获得网页）
