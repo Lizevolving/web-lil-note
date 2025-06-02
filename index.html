@@ -586,6 +586,13 @@
                 font-size: 0.875rem;
                 padding: 0.75rem 1rem;
             }
+
+            /* Mobile optimization: hide about tooltip, direct click to modal */
+            @media (max-width: 768px) {
+                .logo-about {
+                    display: none;
+                }
+            }
         }
 
         /* Animations */
@@ -867,8 +874,24 @@
             // Language toggle
             document.getElementById('langToggle').addEventListener('click', toggleLanguage);
             
-            // About modal
-            document.getElementById('logoAbout').addEventListener('click', showAbout);
+            // About modal - enhanced with mobile detection
+            const logoAbout = document.getElementById('logoAbout');
+            logoAbout.addEventListener('click', function(e) {
+                // Direct modal open on mobile or when clicking the tooltip
+                if (window.innerWidth <= 768 || e.target.closest('.logo-about')) {
+                    showAbout();
+                }
+            });
+            
+            // Desktop hover tooltip click handler
+            const aboutTooltip = logoAbout.querySelector('.logo-about');
+            if (aboutTooltip) {
+                aboutTooltip.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showAbout();
+                });
+            }
+            
             document.getElementById('closeAbout').addEventListener('click', hideAbout);
             document.getElementById('aboutModal').addEventListener('click', function(e) {
                 if (e.target === this) hideAbout();
@@ -1218,14 +1241,19 @@
         // Enhanced markdown to HTML converter
         function convertMarkdownToHTML(markdown) {
             let html = markdown
-                // Escape HTML tags in code blocks first to prevent rendering
+                // Process code blocks FIRST with special handling
                 .replace(/```(\w+)?\n?([\s\S]*?)```/g, function(match, lang, code) {
                     const language = lang ? ` class="language-${lang}"` : '';
-                    return `<pre><code${language}>${code.trim()}</code></pre>`;
+                    // Create a temporary element to safely encode HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.textContent = code.trim();
+                    return `<pre><code${language}>${tempDiv.innerHTML}</code></pre>`;
                 })
-                // Escape inline code
+                // Escape inline code safely
                 .replace(/`([^`]+)`/g, function(match, code) {
-                    return `<code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.textContent = code;
+                    return `<code>${tempDiv.innerHTML}</code>`;
                 })
                 // Headers (order matters - longer patterns first)
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
